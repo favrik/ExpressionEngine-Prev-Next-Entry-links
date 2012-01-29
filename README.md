@@ -16,3 +16,15 @@ Usage Example
         <a href="{site_url}{channel_short_nane}/{entry_date format="%Y/%m/%d"}/{url_title}">{title}</a>
     {/exp:favrik_nextprev:next_entry}
 
+
+
+Changelog
+---------
+###1.0.1 - Bug fixes and improvements
+> * Add validation for when the `id` passed does not exist in the database
+> * Return FALSE when no rows are found
+> * By default don't show future entries
+> * Update plugin URL
+
+
+###1.0.0 - Initial Relase

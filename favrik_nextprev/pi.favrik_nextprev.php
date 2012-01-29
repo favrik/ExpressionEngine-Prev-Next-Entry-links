@@ -14,9 +14,9 @@
  */
  
 $plugin_info = array(   'pi_name'           => 'EE2 favrik Next/Prev entry linking',
-                        'pi_version'        => '1.0.0',
+                        'pi_version'        => '1.0.1',
                         'pi_author'         => 'Favrik',
-                        'pi_author_url'     => 'http://github.com/favrik/',
+                        'pi_author_url'     => 'https://github.com/favrik/ExpressionEngine-Prev-Next-Entry-links',
                         'pi_description'    => 'Outputs next/prev entry links',
                         'pi_usage'          => Favrik_nextprev::usage());
 
@@ -67,9 +67,15 @@ Class Favrik_nextprev
         }
 
         $row = $this->_find_current_entry_id();
-
-	    $this->EE->session->cache['channel']['single_entry_id'] = $row['entry_id'];
-		$this->EE->session->cache['channel']['single_entry_date'] = $row['entry_date'];
+        if (FALSE === $row)
+        {
+            $this->id = FALSE;
+        }
+        else
+        {
+    	    $this->EE->session->cache['channel']['single_entry_id'] = $row['entry_id'];
+	        $this->EE->session->cache['channel']['single_entry_date'] = $row['entry_date'];
+        }
     }
 
     function _find_current_entry_id()
@@ -92,7 +98,7 @@ Class Favrik_nextprev
         if ($query->num_rows() != 1)
         {
             $this->EE->TMPL->log_item('Favrik Next/Prev Entry tag error: Could not find entry id.');
-            return;
+            return FALSE;
         }
 
         return $query->row_array();
@@ -163,6 +169,16 @@ Class Favrik_nextprev
     function _replace_vars($entry)
     {
         $query = $entry;
+
+
+        // Check if date is in the future!
+        $now_localized        = $this->EE->localize->set_localized_time();
+        $entry_date_localized = $this->EE->localize->set_localized_time($query->row('entry_date'));
+        if ($entry_date_localized > $now_localized)
+        {
+            return ''; // Empty content
+        }
+
 
         $this->EE->load->library('typography');
 
