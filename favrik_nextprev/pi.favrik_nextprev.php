@@ -38,6 +38,10 @@ Class Favrik_nextprev
         $this->id = $this->id === '' ? FALSE : $this->id;
 
         $this->channel = $this->EE->TMPL->fetch_param('channel', FALSE);
+        
+        // Check for a category ID
+        $this->category_id = $this->EE->TMPL->fetch_param('category_id', FALSE);
+        $this->category_id = $this->category_id === '' ? FALSE : $this->category_id;
 
         if ( ! $this->is_entry_cached() )
         {
@@ -120,12 +124,35 @@ Class Favrik_nextprev
         {
             return '';
         }
+        
+        // If a category ID is present, limit next/prev
+        //    to just entries within this category
+        if ($this->category_id !== FALSE) {
+        	$sql_cat = 'SELECT entry_id 
+        				 FROM exp_category_posts 
+        				 WHERE cat_id = ' . $this->category_id;
+        				 
+        	$query_cat = $this->EE->db->query($sql_cat);
+        	$cat_entries = array();;
+        	foreach ($query_cat->result_array() as $row) {
+        		$cat_entries[] = $row['entry_id'];
+        	}
+        	
+        	$cat_entries = implode(',',$cat_entries);
+        	//echo $cat_entries;
+        }
 
         $sql = 'SELECT t.entry_id, t.title, t.url_title, t.entry_date, w.channel_name
                 FROM (exp_channel_titles AS t)
                 LEFT JOIN exp_channels AS w ON w.channel_id = t.channel_id ';
 
         $sql .= ' WHERE t.entry_id != '.$this->EE->session->cache['channel']['single_entry_id'].' ';
+        
+        // If a category ID is present, limit next/prev
+        //    to just entries within this category
+        if ($this->category_id !== FALSE) {
+        	$sql .= ' AND t.entry_id IN (' . $cat_entries . ')';
+        }
 
         $comparison = ($type === 'next') ? '>' : '<';
 	    $sort = ($type === 'next') ? 'ASC' : 'DESC';
@@ -242,4 +269,3 @@ Usage Example
 
 
 }
-
